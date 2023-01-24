@@ -1,13 +1,10 @@
 import type { IncentiveTracker, IncentiveToken } from "~/types/global";
-import { type Signer, type Contract, ethers}  from "ethers";
+import { type Signer, type Contract, type BigNumber, type BigNumberish, ethers }  from "ethers";
 import { Tendies } from "~/config/networks/arbitrum"
 import rewardRouterAbi from "~/config/sample-reward-router-abi"
 import rewardTrackerAbi from "~/config/sample-reward-tracker-abi"
 import rewardTokenAbi from "~/config/sample-reward-token-abi"
-
-import type {
-  TransactionReceipt,
-} from "@ethersproject/providers";
+import type { TransactionReceipt } from "@ethersproject/providers";
 
 interface Txn {
   wait: (n?: number) => TransactionReceipt;
@@ -15,70 +12,76 @@ interface Txn {
 }
 
 const UINT_MAX = ethers.constants.MaxUint256
-const trackers = Tendies.Trackers
-const tokens   = Tendies.Tokens
+const { Trackers, Tokens }= Tendies
 
-const getToken = (token: IncentiveToken) => { return tokens[token] }
-const getTracker = (tracker: IncentiveTracker) => { return trackers[tracker] }
+const getToken = (token: IncentiveToken) => { return Tokens[token] }
+const getTracker = (tracker: IncentiveTracker) => { return Trackers[tracker] }
 const getTokenTracker = (token: IncentiveToken) => { return getTracker(getToken(token).tracker) }
 
-const getContract = (contractName: IncentiveToken | IncentiveTracker , signer: Signer): Contract  => {
-  const isToken = contractName in Object.keys(tokens)
+const getContract = (contractName: IncentiveToken | IncentiveTracker, signer: Signer): Contract  => {
+  const isToken = contractName in Object.keys(Tokens)
   const abi = isToken ? rewardTokenAbi : rewardTrackerAbi;
-  //@ts-ignore
+  // @ts-ignore
   const address = isToken ? getToken(contractName).address : getTracker(contractName).address;
   return new ethers.Contract(address, abi, signer);
 }
 
-export const getClaimable = async (token: IncentiveToken, signer: Signer): Promise<number> => {
+export const getClaimable = async (token: IncentiveToken, signer: Signer): Promise<BigNumber> => {
   const trackerContract = getContract(getToken(token).tracker, signer)
-  return await trackerContract.claimable(await signer.getAddress());
+  return trackerContract.claimable(await signer.getAddress());
 }
 
-export const getBalance = async (token: IncentiveToken, signer: Signer): Promise<number> => {
-  const trackerContract = getContract(getToken(token).tracker, signer)
-  return await trackerContract.claimable(await signer.getAddress());
+export const getBalance = async (token: IncentiveToken, signer: Signer): Promise<BigNumber> => {
+  const tokenContract = getContract(token, signer)
+  return tokenContract.balanceOf(await signer.getAddress());
 }
 
-export const getStaked = async (token: IncentiveToken, signer: Signer): Promise<number> => {
+export const getStaked = async (token: IncentiveToken, signer: Signer): Promise<BigNumber> => {
   const tokenContract = getContract(token, signer);
-  return await tokenContract.stakedAmount(await signer.getAddress());
+  return tokenContract.depositBalances(await signer.getAddress(), tokenContract.address);
 }
 
 export const enable = async (token: IncentiveToken, signer: Signer): Promise<Txn> => {
   const tokenContract = getContract(token, signer);
   const trackerAddress = getTokenTracker(token).address
-  return await tokenContract.approve(trackerAddress, UINT_MAX)
+  return tokenContract.approve(trackerAddress, UINT_MAX)
 }
 
 const callRewardRouterFn = async (fnName: string, signer: Signer, ...args: any[]): Promise<Txn>  => {
   const routerContract = new ethers.Contract(Tendies.RewardRouter, rewardRouterAbi, signer);
-  return await routerContract[fnName](...args)
+  return routerContract[fnName](...args)
 }
 
-export const stakeTnd = async (amount: Number, signer: Signer): Promise<Txn> => {
-  return await callRewardRouterFn('stakeTnd', signer, [amount])
+export const stakeTnd = async (amount: BigNumberish, signer: Signer): Promise<Txn> => {
+  return callRewardRouterFn('stakeTnd', signer, [amount])
 }
-export const stakeEsTnd = async (amount: Number, signer: Signer): Promise<Txn> => {
-  return await callRewardRouterFn('stakeEsTnd', signer, [amount])
+
+export const stakeEsTnd = async (amount: BigNumberish, signer: Signer): Promise<Txn> => {
+  return callRewardRouterFn('stakeEsTnd', signer, [amount])
 }
-export const unstakeTnd = async (amount: Number, signer: Signer): Promise<Txn> => {
-  return await callRewardRouterFn('unstakeTnd', signer, [amount])
+
+export const unstakeTnd = async (amount: BigNumberish, signer: Signer): Promise<Txn> => {
+  return callRewardRouterFn('unstakeTnd', signer, [amount])
 }
-export const unstakeEsTnd = async (amount: Number, signer: Signer): Promise<Txn> => {
-  return await callRewardRouterFn('unstakeEsTnd', signer, [amount])
+
+export const unstakeEsTnd = async (amount: BigNumberish, signer: Signer): Promise<Txn> => {
+  return callRewardRouterFn('unstakeEsTnd', signer, [amount])
 }
+
 export const compound = async (signer: Signer): Promise<Txn> => {
-  return await callRewardRouterFn('compound', signer)
+  return callRewardRouterFn('compound', signer)
 }
-export const claim = async (amount: Number, signer: Signer): Promise<Txn> => {
-  return await callRewardRouterFn('claimTnd', signer, [amount])
+
+export const claim = async (signer: Signer): Promise<Txn> => {
+  return callRewardRouterFn('claimTnd', signer)
 }
-export const claimEsTnd = async (amount: Number, signer: Signer): Promise<Txn> => {
-  return await callRewardRouterFn('claimEsTnd', signer, [amount])
+
+export const claimEsTnd = async (signer: Signer): Promise<Txn> => {
+  return callRewardRouterFn('claimEsTnd', signer)
 }
-export const claimFees = async (amount: Number, signer: Signer): Promise<Txn> => {
-  return await callRewardRouterFn('claimFees', signer, [amount])
+
+export const claimFees = async (signer: Signer): Promise<Txn> => {
+  return callRewardRouterFn('claimFees', signer)
 }
 
 export const getStakingData = async (signer: Signer) => {
@@ -87,7 +90,7 @@ export const getStakingData = async (signer: Signer) => {
     getStaked('esTND', signer),
     getStaked('bnTND', signer),
   ]);
-  return { tndStaked, esTndStaked, bnTndStaked }
+  return { tndStaked, esTndStaked, bnTndStaked };
 }
 
 export const getClaimableData = async (signer: Signer) => {
@@ -96,14 +99,22 @@ export const getClaimableData = async (signer: Signer) => {
     getClaimable('esTND', signer),
     getClaimable('bnTND', signer),
   ]);
-  return { tndClaimable, esTndClaimable, bnTndClaimable }
+  return { tndClaimable, esTndClaimable, bnTndClaimable };
 }
 
 export const getBalanceData = async (signer: Signer) => {
-  const [ tndBalance, esTndBalance, bnTndBalance ] = await Promise.all([
+  const [ tndBalance, esTndBalance ] = await Promise.all([
     getBalance('TND', signer),
     getBalance('esTND', signer),
-    getBalance('bnTND', signer),
   ]);
-  return { tndBalance, esTndBalance, bnTndBalance }
+  return { tndBalance, esTndBalance };
+}
+
+export const getAllData = async (signer: Signer) => {
+  const [ stakingData, claimableData, balanceData ] = await Promise.all([
+    getStakingData(signer),
+    getClaimableData(signer),
+    getBalanceData(signer),
+  ]);
+  return { stakingData, claimableData, balanceData };
 }
