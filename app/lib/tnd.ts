@@ -7,7 +7,6 @@ import rewardTokenAbi from "~/config/sample-reward-token-abi"
 
 import type {
   TransactionReceipt,
-  JsonRpcSigner,
 } from "@ethersproject/providers";
 
 interface Txn {
@@ -41,7 +40,7 @@ export const getBalance = async (token: IncentiveToken, signer: Signer): Promise
   return await trackerContract.claimable(await signer.getAddress());
 }
 
-export const getStakedAmount = async (token: IncentiveToken, signer: Signer): Promise<number> => {
+export const getStaked = async (token: IncentiveToken, signer: Signer): Promise<number> => {
   const tokenContract = getContract(token, signer);
   return await tokenContract.stakedAmount(await signer.getAddress());
 }
@@ -80,4 +79,31 @@ export const claimEsTnd = async (amount: Number, signer: Signer): Promise<Txn> =
 }
 export const claimFees = async (amount: Number, signer: Signer): Promise<Txn> => {
   return await callRewardRouterFn('claimFees', signer, [amount])
+}
+
+export const getStakingData = async (signer: Signer) => {
+  const [ tndStaked, esTndStaked, bnTndStaked ] = await Promise.all([
+    getStaked('TND', signer),
+    getStaked('esTND', signer),
+    getStaked('bnTND', signer),
+  ]);
+  return { tndStaked, esTndStaked, bnTndStaked }
+}
+
+export const getClaimableData = async (signer: Signer) => {
+  const [ tndClaimable, esTndClaimable, bnTndClaimable ] = await Promise.all([
+    getClaimable('TND', signer),
+    getClaimable('esTND', signer),
+    getClaimable('bnTND', signer),
+  ]);
+  return { tndClaimable, esTndClaimable, bnTndClaimable }
+}
+
+export const getBalanceData = async (signer: Signer) => {
+  const [ tndBalance, esTndBalance, bnTndBalance ] = await Promise.all([
+    getBalance('TND', signer),
+    getBalance('esTND', signer),
+    getBalance('bnTND', signer),
+  ]);
+  return { tndBalance, esTndBalance, bnTndBalance }
 }
