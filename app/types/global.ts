@@ -107,3 +107,28 @@ export type Market = {
   supplyCaps: string,
   collateralFactor: number
 };
+
+export type IncentiveTracker = "sTND" | "sbTND" | "sbfTND";
+export type IncentiveToken = "TND" | "esTND" | "bnTND";
+
+export type IncentiveConfig = {
+  name: string;
+  address: string;
+  decimals: number;
+  symbol: string;
+}
+
+export type IncentiveTokenConfig = IncentiveConfig & {
+  tracker: IncentiveTracker
+}
+
+export type IncentiveContractsConfig = {
+  RewardRouter: string,
+  RewardDistributor: string,
+  Tokens: {
+    [key in IncentiveToken]: IncentiveTokenConfig;
+  }
+  Trackers: {
+    [key in IncentiveTracker]: IncentiveConfig;
+  }
+}

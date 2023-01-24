@@ -1,3 +1,5 @@
+import { IncentiveContractsConfig, IncentivesConfig } from "~/types/global";
+
 export default {
   ChainId: 42161,
   name: "Arbitrum",
@@ -173,3 +175,50 @@ export default {
     },
   },
 };
+export const Tendies: IncentiveContractsConfig= {
+  RewardRouter: "0xca11F41b1384A7Af40be244eFb602F1a5aFeFf61",
+  RewardDistributor: "0x705B3d2DF6e8F8E0e7007f52A7BD66086A12E9aE",
+  Tokens: {
+    TND: {
+      name: "TND",
+      symbol: "TND",
+      decimals: 18,
+      address: "0xc47d9753f3b32aa9548a7c3f30b6aec3b2d2798c",
+      tracker: 'sTND'
+    },
+    esTND: {
+      name: "Escrowed TND",
+      symbol: "esTND",
+      decimals: 18,
+      address: "0x8a3ab81902e1b3d4a3c73ad3ce250d1a584fe925",
+      tracker: 'sTND'
+    },
+    bnTND: {
+      name: "Bonus TND",
+      symbol: "bnTND",
+      decimals: 18,
+      address: "0x8030523e14e246f537474173c03f69c5521d384a",
+      tracker: 'sbTND'
+    },
+  },
+  Trackers: {
+    sbfTND: {
+      name: "Staked + Bonus + Fee TND",
+      symbol: "sbfTND",
+      decimals: 18,
+      address: "0xe94Ebd36482f91B9E97a958F836324442F34C1F4",
+    },
+    sTND: {
+      name: "Staked TND",
+      symbol: "sTND",
+      decimals: 18,
+      address: "0x8a3aB81902E1b3D4A3C73AD3CE250D1A584fE925",
+    },
+    sbTND: {
+      name: "Staked + Bonus TND",
+      symbol: "sbTND",
+      decimals: 18,
+      address: "0x510894845E7f632222bd8a912855Aa82ba3f7eD0",
+    },
+  }
+}
