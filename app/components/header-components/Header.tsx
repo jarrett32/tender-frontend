@@ -49,7 +49,6 @@ export default function Header() {
   const menuRef = useRef<any>(null);
   const [activePopupMenu, setActivePopupMenu] = useState<boolean>(false);
   const [dataClaimModal, setDataClaimModal] = useState<any>({ open: false });
-  const [loadingTndBtn, setLoadingTndBtn] = useState<boolean>(true);
   const [TNDData, setTNDData] = useState<allData | null>(null);
   const { networkData } = useContext(TenderContext);
 
@@ -166,7 +165,7 @@ export default function Header() {
             )}
           </div>
           <div className="flex items-center z-20 relative">
-            {loadingTndBtn ? (
+            {tndPrice ? (
               <div className="show animate w-[34px] h-[34px] xl:w-[90px] xl:h-[44px] mr-[6px] xl:mr-[12px]"></div>
             ) : (
               <div className="relative z-10 w-[34px] xl:w-[auto] mr-[6px] xl:mr-[12px] h-[34px] xl:h-[44px]">
